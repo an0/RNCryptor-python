@@ -1,53 +1,35 @@
-#!/usr/bin/env python
-# coding: utf-8
+#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 from __future__ import print_function
 
 import hashlib
 import hmac
 import sys
+import argparse
 
 from Crypto.Cipher import AES
 from Crypto.Protocol import KDF
 from Crypto import Random
 
 
-PY2 = sys.version_info[0] == 2
-PY3 = sys.version_info[0] == 3
-
-if PY2:
-    def to_bytes(s):
-        if isinstance(s, str):
-            return s
-        if isinstance(s, unicode):
-            return s.encode('utf-8')
-
-    to_str = to_bytes
-
-    def bchr(s):
-        return chr(s)
-
-    def bord(s):
-        return ord(s)
-
-elif PY3:
-    def to_bytes(s):
-        if isinstance(s, bytes):
-            return s
-        if isinstance(s, str):
-            return s.encode('utf-8')
-
-    def to_str(s):
-        if isinstance(s, bytes):
-            return s.decode('utf-8')
-        if isinstance(s, str):
-            return s
-
-    def bchr(s):
-        return bytes([s])
-
-    def bord(s):
+def to_bytes(s):
+    if isinstance(s, bytes):
         return s
+    if isinstance(s, str):
+        return s.encode('utf-8')
+
+def to_str(s):
+    if isinstance(s, bytes):
+        return s.decode('utf-8')
+    if isinstance(s, str):
+        return s
+
+def bchr(s):
+    return bytes([s])
+
+def bord(s):
+    return s
 
 
 class RNCryptor(object):
@@ -152,7 +134,7 @@ class RNCryptor(object):
                           prf=lambda p, s: hmac.new(p, s, hashlib.sha1).digest())
 
 
-def main():
+def test():
     from time import time
 
     cryptor = RNCryptor()
@@ -175,6 +157,33 @@ def main():
             assert text == decrypted_data
 
 
-if __name__ == '__main__':
+def main():
+    parser = argparse.ArgumentParser(description='An AES encryption/decryption utility.')
+    parser.add_argument('-d', action='store_true')
+    parser.add_argument('-pass', dest='password', required=True)
+    parser.add_argument('-in', dest='input')
+    parser.add_argument('-out', dest='output')
+    options = parser.parse_args()
+    decrypt = options.d
+    password = options.password
+    input = options.input
+    output = options.output
 
+    cryptor = RNCryptor()
+    if decrypt:
+        with open(input, 'rb') as f:
+            in_data = f.read()
+        out_data = cryptor.decrypt(in_data, password)
+        with open(output, 'wt', encoding="utf-8") as f:
+            f.write(out_data)
+    else:
+        with open(input, 'rt', encoding="utf-8") as f:
+            in_data = f.read()
+        out_data = cryptor.encrypt(in_data, password)
+        with open(output, 'wb') as f:
+            f.write(out_data)
+
+
+if __name__ == '__main__':
+    # test()
     main()
