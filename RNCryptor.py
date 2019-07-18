@@ -19,14 +19,17 @@ def to_bytes(s):
     if isinstance(s, str):
         return s.encode('utf-8')
 
+
 def to_str(s):
     if isinstance(s, bytes):
         return s.decode('utf-8')
     if isinstance(s, str):
         return s
 
+
 def bchr(s):
     return bytes([s])
+
 
 def bord(s):
     return s
@@ -103,7 +106,8 @@ class RNCryptor(object):
         version = b'\x03'
         options = b'\x01'
 
-        new_data = b''.join([version, options, encryption_salt, hmac_salt, iv, cipher_text])
+        new_data = b''.join(
+            [version, options, encryption_salt, hmac_salt, iv, cipher_text])
         encrypted_data = new_data + self._hmac(hmac_key, new_data)
 
         return self.post_encrypt_data(encrypted_data)
@@ -130,8 +134,12 @@ class RNCryptor(object):
         return hmac.new(key, data, hashlib.sha256).digest()
 
     def _pbkdf2(self, password, salt, iterations=10000, key_length=32):
-        return KDF.PBKDF2(password, salt, dkLen=key_length, count=iterations,
-                          prf=lambda p, s: hmac.new(p, s, hashlib.sha1).digest())
+        return KDF.PBKDF2(
+            password,
+            salt,
+            dkLen=key_length,
+            count=iterations,
+            prf=lambda p, s: hmac.new(p, s, hashlib.sha1).digest())
 
 
 def test():
@@ -158,7 +166,8 @@ def test():
 
 
 def main():
-    parser = argparse.ArgumentParser(description='An AES encryption/decryption utility.')
+    parser = argparse.ArgumentParser(
+        description='An AES encryption/decryption utility.')
     parser.add_argument('-d', action='store_true')
     parser.add_argument('-pass', dest='password', required=True)
     parser.add_argument('-in', dest='input')
@@ -174,10 +183,10 @@ def main():
         with open(input, 'rb') as f:
             in_data = f.read()
         out_data = cryptor.decrypt(in_data, password)
-        with open(output, 'wt', encoding="utf-8") as f:
+        with open(output, 'wb') as f:
             f.write(out_data)
     else:
-        with open(input, 'rt', encoding="utf-8") as f:
+        with open(input, 'rb') as f:
             in_data = f.read()
         out_data = cryptor.encrypt(in_data, password)
         with open(output, 'wb') as f:
